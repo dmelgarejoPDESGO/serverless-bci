@@ -45,6 +45,7 @@ namespace TollBooth
                                 new FeedOptions() { EnableCrossPartitionQuery = true, MaxItemCount = 100 })
                                 .Where(l => l.exported == false)
                                 .ToList();
+
                 // TODO 6: Remove the line below.
                 //licensePlates = new List<LicensePlateDataDocument>();
             }
