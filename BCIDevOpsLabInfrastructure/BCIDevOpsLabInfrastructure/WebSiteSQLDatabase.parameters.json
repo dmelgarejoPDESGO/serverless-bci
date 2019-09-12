@@ -1,0 +1,21 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "sites_BCIDevOpsLabWeb_name": {
+      "value": "bcidevopslabweb"
+    },
+    "servers_bcidevopslabsql_name": {
+      "value": "bcidevopslabsql"
+    },
+    "serverfarms_BCIDevOpsLabAppSP_name": {
+      "value": "bcidevopslabapps"
+    },
+    "storageAccounts_sqlvajf4hlg4ctwof2_name": {
+      "value": "bcidevopslabstorage"
+    },
+    "registries_BCIDevOpsLabACR_name": {
+      "value": "bcidevopslabacr"
+    }
+  }
+}

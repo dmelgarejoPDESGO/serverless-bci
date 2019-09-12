@@ -1,0 +1,790 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "sites_BCIDevOpsLabWeb_name": {
+      "defaultValue": "BCIDevOpsLabWeb",
+      "type": "String"
+    },
+    "servers_bcidevopslabsql_name": {
+      "defaultValue": "bcidevopslabsql",
+      "type": "String"
+    },
+    "serverfarms_BCIDevOpsLabAppSP_name": {
+      "defaultValue": "BCIDevOpsLabAppSP",
+      "type": "String"
+    },
+    "storageAccounts_sqlvajf4hlg4ctwof2_name": {
+      "defaultValue": "sqlvajf4hlg4ctwof2",
+      "type": "String"
+    },
+    "registries_BCIDevOpsLabACR_name": {
+      "defaultValue": "BCIDevOpsLabACR",
+      "type": "String"
+    }
+  },
+  "variables": {},
+  "resources": [
+    {
+      "type": "Microsoft.ContainerRegistry/registries",
+      "apiVersion": "2017-10-01",
+      "name": "[parameters('registries_BCIDevOpsLabACR_name')]",
+      "location": "eastus2",
+      "sku": {
+        "name": "Standard",
+        "tier": "Standard"
+      },
+      "properties": {
+        "adminUserEnabled": true
+      }
+    },
+    {
+      "type": "Microsoft.Sql/servers",
+      "apiVersion": "2015-05-01-preview",
+      "name": "[parameters('servers_bcidevopslabsql_name')]",
+      "location": "eastus2",
+      "kind": "v12.0",
+      "properties": {
+        "administratorLogin": "sqladmin",
+        "version": "12.0"
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2019-04-01",
+      "name": "[parameters('storageAccounts_sqlvajf4hlg4ctwof2_name')]",
+      "location": "eastus2",
+      "sku": {
+        "name": "Standard_LRS",
+        "tier": "Standard"
+      },
+      "kind": "Storage",
+      "properties": {
+        "networkAcls": {
+          "bypass": "AzureServices",
+          "virtualNetworkRules": [],
+          "ipRules": [],
+          "defaultAction": "Allow"
+        },
+        "supportsHttpsTrafficOnly": false,
+        "encryption": {
+          "services": {
+            "file": {
+              "enabled": true
+            },
+            "blob": {
+              "enabled": true
+            }
+          },
+          "keySource": "Microsoft.Storage"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Web/serverfarms",
+      "apiVersion": "2016-09-01",
+      "name": "[parameters('serverfarms_BCIDevOpsLabAppSP_name')]",
+      "location": "East US 2",
+      "sku": {
+        "name": "P1v2",
+        "tier": "PremiumV2",
+        "size": "P1v2",
+        "family": "Pv2",
+        "capacity": 1
+      },
+      "kind": "linux",
+      "properties": {
+        "name": "[parameters('serverfarms_BCIDevOpsLabAppSP_name')]",
+        "perSiteScaling": false,
+        "reserved": true,
+        "targetWorkerCount": 0,
+        "targetWorkerSizeId": 0
+      }
+    },
+    {
+      "type": "Microsoft.Sql/servers/advisors",
+      "apiVersion": "2014-04-01",
+      "name": "[concat(parameters('servers_bcidevopslabsql_name'), '/CreateIndex')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Sql/servers', parameters('servers_bcidevopslabsql_name'))]"
+      ],
+      "properties": {
+        "autoExecuteValue": "Disabled"
+      }
+    },
+    {
+      "type": "Microsoft.Sql/servers/advisors",
+      "apiVersion": "2014-04-01",
+      "name": "[concat(parameters('servers_bcidevopslabsql_name'), '/DbParameterization')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Sql/servers', parameters('servers_bcidevopslabsql_name'))]"
+      ],
+      "properties": {
+        "autoExecuteValue": "Disabled"
+      }
+    },
+    {
+      "type": "Microsoft.Sql/servers/advisors",
+      "apiVersion": "2014-04-01",
+      "name": "[concat(parameters('servers_bcidevopslabsql_name'), '/DefragmentIndex')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Sql/servers', parameters('servers_bcidevopslabsql_name'))]"
+      ],
+      "properties": {
+        "autoExecuteValue": "Disabled"
+      }
+    },
+    {
+      "type": "Microsoft.Sql/servers/advisors",
+      "apiVersion": "2014-04-01",
+      "name": "[concat(parameters('servers_bcidevopslabsql_name'), '/DropIndex')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Sql/servers', parameters('servers_bcidevopslabsql_name'))]"
+      ],
+      "properties": {
+        "autoExecuteValue": "Disabled"
+      }
+    },
+    {
+      "type": "Microsoft.Sql/servers/advisors",
+      "apiVersion": "2014-04-01",
+      "name": "[concat(parameters('servers_bcidevopslabsql_name'), '/ForceLastGoodPlan')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Sql/servers', parameters('servers_bcidevopslabsql_name'))]"
+      ],
+      "properties": {
+        "autoExecuteValue": "Disabled"
+      }
+    },
+    {
+      "type": "Microsoft.Sql/servers/auditingPolicies",
+      "apiVersion": "2014-04-01",
+      "name": "[concat(parameters('servers_bcidevopslabsql_name'), '/Default')]",
+      "location": "East US 2",
+      "dependsOn": [
+        "[resourceId('Microsoft.Sql/servers', parameters('servers_bcidevopslabsql_name'))]"
+      ],
+      "properties": {
+        "auditingState": "Disabled"
+      }
+    },
+    {
+      "type": "Microsoft.Sql/servers/databases",
+      "apiVersion": "2017-03-01-preview",
+      "name": "[concat(parameters('servers_bcidevopslabsql_name'), '/BCIDevOpsLabDB')]",
+      "location": "eastus2",
+      "dependsOn": [
+        "[resourceId('Microsoft.Sql/servers', parameters('servers_bcidevopslabsql_name'))]"
+      ],
+      "sku": {
+        "name": "GP_Gen5_2",
+        "tier": "GeneralPurpose"
+      },
+      "kind": "v12.0,user,vcore",
+      "properties": {
+        "collation": "SQL_Latin1_General_CP1_CI_AS",
+        "maxSizeBytes": 34359738368,
+        "catalogCollation": "SQL_Latin1_General_CP1_CI_AS",
+        "zoneRedundant": false
+      }
+    },
+    {
+      "type": "Microsoft.Sql/servers/databases/auditingPolicies",
+      "apiVersion": "2014-04-01",
+      "name": "[concat(parameters('servers_bcidevopslabsql_name'), '/master/Default')]",
+      "location": "East US 2",
+      "dependsOn": [
+        "[resourceId('Microsoft.Sql/servers', parameters('servers_bcidevopslabsql_name'))]"
+      ],
+      "properties": {
+        "auditingState": "Disabled"
+      }
+    },
+    {
+      "type": "Microsoft.Sql/servers/databases/geoBackupPolicies",
+      "apiVersion": "2014-04-01",
+      "name": "[concat(parameters('servers_bcidevopslabsql_name'), '/master/Default')]",
+      "location": "East US 2",
+      "dependsOn": [
+        "[resourceId('Microsoft.Sql/servers', parameters('servers_bcidevopslabsql_name'))]"
+      ],
+      "properties": {
+        "state": "Enabled"
+      }
+    },
+    {
+      "type": "Microsoft.Sql/servers/databases/securityAlertPolicies",
+      "apiVersion": "2018-06-01-preview",
+      "name": "[concat(parameters('servers_bcidevopslabsql_name'), '/master/Default')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Sql/servers', parameters('servers_bcidevopslabsql_name'))]"
+      ],
+      "properties": {
+        "state": "Disabled",
+        "disabledAlerts": [
+          ""
+        ],
+        "emailAddresses": [
+          ""
+        ],
+        "emailAccountAdmins": false,
+        "retentionDays": 0
+      }
+    },
+    {
+      "type": "Microsoft.Sql/servers/databases/transparentDataEncryption",
+      "apiVersion": "2014-04-01",
+      "name": "[concat(parameters('servers_bcidevopslabsql_name'), '/master/current')]",
+      "location": "East US 2",
+      "dependsOn": [
+        "[resourceId('Microsoft.Sql/servers', parameters('servers_bcidevopslabsql_name'))]"
+      ],
+      "properties": {
+        "status": "Disabled"
+      }
+    },
+    {
+      "type": "Microsoft.Sql/servers/databases/vulnerabilityAssessments",
+      "apiVersion": "2017-03-01-preview",
+      "name": "[concat(parameters('servers_bcidevopslabsql_name'), '/master/Default')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Sql/servers', parameters('servers_bcidevopslabsql_name'))]"
+      ],
+      "properties": {
+        "recurringScans": {
+          "isEnabled": false,
+          "emailSubscriptionAdmins": true
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Sql/servers/encryptionProtector",
+      "apiVersion": "2015-05-01-preview",
+      "name": "[concat(parameters('servers_bcidevopslabsql_name'), '/current')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Sql/servers', parameters('servers_bcidevopslabsql_name'))]"
+      ],
+      "kind": "servicemanaged",
+      "properties": {
+        "serverKeyName": "ServiceManaged",
+        "serverKeyType": "ServiceManaged"
+      }
+    },
+    {
+      "type": "Microsoft.Sql/servers/firewallRules",
+      "apiVersion": "2015-05-01-preview",
+      "name": "[concat(parameters('servers_bcidevopslabsql_name'), '/AllowAllAzureIps')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Sql/servers', parameters('servers_bcidevopslabsql_name'))]"
+      ],
+      "properties": {
+        "startIpAddress": "0.0.0.0",
+        "endIpAddress": "0.0.0.0"
+      }
+    },
+    {
+      "type": "Microsoft.Sql/servers/firewallRules",
+      "apiVersion": "2015-05-01-preview",
+      "name": "[concat(parameters('servers_bcidevopslabsql_name'), '/AllowAllWindowsAzureIps')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Sql/servers', parameters('servers_bcidevopslabsql_name'))]"
+      ],
+      "properties": {
+        "startIpAddress": "0.0.0.0",
+        "endIpAddress": "0.0.0.0"
+      }
+    },
+    {
+      "type": "Microsoft.Sql/servers/keys",
+      "apiVersion": "2015-05-01-preview",
+      "name": "[concat(parameters('servers_bcidevopslabsql_name'), '/ServiceManaged')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Sql/servers', parameters('servers_bcidevopslabsql_name'))]"
+      ],
+      "kind": "servicemanaged",
+      "properties": {
+        "serverKeyType": "ServiceManaged"
+      }
+    },
+    {
+      "type": "Microsoft.Sql/servers/securityAlertPolicies",
+      "apiVersion": "2017-03-01-preview",
+      "name": "[concat(parameters('servers_bcidevopslabsql_name'), '/Default')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Sql/servers', parameters('servers_bcidevopslabsql_name'))]"
+      ],
+      "properties": {
+        "state": "Enabled",
+        "disabledAlerts": [
+          ""
+        ],
+        "emailAddresses": [
+          ""
+        ],
+        "emailAccountAdmins": true,
+        "retentionDays": 0
+      }
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2016-08-01",
+      "name": "[parameters('sites_BCIDevOpsLabWeb_name')]",
+      "location": "East US 2",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', parameters('serverfarms_BCIDevOpsLabAppSP_name'))]"
+      ],
+      "kind": "app,linux,container",
+      "properties": {
+        "enabled": true,
+        "hostNameSslStates": [
+          {
+            "name": "bcidevopslabweb.azurewebsites.net",
+            "sslState": "Disabled",
+            "hostType": "Standard"
+          },
+          {
+            "name": "bcidevopslabweb.scm.azurewebsites.net",
+            "sslState": "Disabled",
+            "hostType": "Repository"
+          }
+        ],
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('serverfarms_BCIDevOpsLabAppSP_name'))]",
+        "reserved": true,
+        "scmSiteAlsoStopped": false,
+        "clientAffinityEnabled": false,
+        "clientCertEnabled": false,
+        "hostNamesDisabled": false,
+        "containerSize": 0,
+        "dailyMemoryTimeQuota": 0,
+        "httpsOnly": false
+      }
+    },
+    {
+      "type": "Microsoft.Web/sites/config",
+      "apiVersion": "2016-08-01",
+      "name": "[concat(parameters('sites_BCIDevOpsLabWeb_name'), '/web')]",
+      "location": "East US 2",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', parameters('sites_BCIDevOpsLabWeb_name'))]"
+      ],
+      "properties": {
+        "numberOfWorkers": 1,
+        "defaultDocuments": [
+          "Default.htm",
+          "Default.html",
+          "Default.asp",
+          "index.htm",
+          "index.html",
+          "iisstart.htm",
+          "default.aspx",
+          "index.php",
+          "hostingstart.html"
+        ],
+        "netFrameworkVersion": "v4.0",
+        "phpVersion": "",
+        "pythonVersion": "",
+        "nodeVersion": "",
+        "linuxFxVersion": "DOCKER|bcidevopslabacr.azurecr.io/myhealth.web:36",
+        "requestTracingEnabled": false,
+        "remoteDebuggingEnabled": false,
+        "remoteDebuggingVersion": "VS2017",
+        "httpLoggingEnabled": false,
+        "logsDirectorySizeLimit": 35,
+        "detailedErrorLoggingEnabled": false,
+        "publishingUsername": "$BCIDevOpsLabWeb",
+        "scmType": "VSTSRM",
+        "use32BitWorkerProcess": true,
+        "webSocketsEnabled": false,
+        "alwaysOn": true,
+        "appCommandLine": "",
+        "managedPipelineMode": "Integrated",
+        "virtualApplications": [
+          {
+            "virtualPath": "/",
+            "physicalPath": "site\\wwwroot",
+            "preloadEnabled": true,
+            "virtualDirectories": null
+          }
+        ],
+        "winAuthAdminState": 0,
+        "winAuthTenantState": 0,
+        "customAppPoolIdentityAdminState": false,
+        "customAppPoolIdentityTenantState": false,
+        "loadBalancing": "LeastRequests",
+        "routingRules": [],
+        "experiments": {
+          "rampUpRules": []
+        },
+        "autoHealEnabled": false,
+        "vnetName": "",
+        "siteAuthEnabled": false,
+        "siteAuthSettings": {
+          "enabled": null,
+          "unauthenticatedClientAction": null,
+          "tokenStoreEnabled": null,
+          "allowedExternalRedirectUrls": null,
+          "defaultProvider": null,
+          "clientId": null,
+          "clientSecret": null,
+          "clientSecretCertificateThumbprint": null,
+          "issuer": null,
+          "allowedAudiences": null,
+          "additionalLoginParams": null,
+          "isAadAutoProvisioned": false,
+          "googleClientId": null,
+          "googleClientSecret": null,
+          "googleOAuthScopes": null,
+          "facebookAppId": null,
+          "facebookAppSecret": null,
+          "facebookOAuthScopes": null,
+          "twitterConsumerKey": null,
+          "twitterConsumerSecret": null,
+          "microsoftAccountClientId": null,
+          "microsoftAccountClientSecret": null,
+          "microsoftAccountOAuthScopes": null
+        },
+        "localMySqlEnabled": false,
+        "http20Enabled": false,
+        "minTlsVersion": "1.2",
+        "ftpsState": "AllAllowed",
+        "reservedInstanceCount": 0
+      }
+    },
+    {
+      "type": "Microsoft.Web/sites/deployments",
+      "apiVersion": "2016-08-01",
+      "name": "[concat(parameters('sites_BCIDevOpsLabWeb_name'), '/11561485948432')]",
+      "location": "East US 2",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', parameters('sites_BCIDevOpsLabWeb_name'))]"
+      ],
+      "properties": {
+        "id": "11561485948432",
+        "status": 4,
+        "author": "Diego Melgarejo San Martin",
+        "deployer": "VSTS",
+        "message": "{\"type\":\"Deployment\",\"commitId\":\"6db71cef54ed579517a7aa655387f7dbc30701a1\",\"buildId\":\"32\",\"releaseId\":\"1\",\"buildNumber\":\"20190625.1\",\"releaseName\":\"Release-1\",\"repoProvider\":\"Bitbucket\",\"collectionUrl\":\"https://dev.azure.com/csademos/\",\"teamProject\":\"905868c6-f02f-4cca-a8b2-b1c709a7fc58\",\"slotName\":\"production\"}",
+        "start_time": "2019-06-25T18:05:49.627136Z",
+        "end_time": "2019-06-25T18:05:49.627136Z",
+        "active": false
+      }
+    },
+    {
+      "type": "Microsoft.Web/sites/deployments",
+      "apiVersion": "2016-08-01",
+      "name": "[concat(parameters('sites_BCIDevOpsLabWeb_name'), '/21561486420087')]",
+      "location": "East US 2",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', parameters('sites_BCIDevOpsLabWeb_name'))]"
+      ],
+      "properties": {
+        "id": "21561486420087",
+        "status": 4,
+        "author": "Microsoft.VisualStudio.Services.TFS",
+        "deployer": "VSTS",
+        "message": "{\"type\":\"Deployment\",\"commitId\":\"d47d2fc3c4f2ddc7c29e01cc52a90c6c464c4eba\",\"buildId\":\"33\",\"releaseId\":\"2\",\"buildNumber\":\"20190625.2\",\"releaseName\":\"Release-2\",\"repoProvider\":\"Bitbucket\",\"collectionUrl\":\"https://dev.azure.com/csademos/\",\"teamProject\":\"905868c6-f02f-4cca-a8b2-b1c709a7fc58\",\"slotName\":\"production\"}",
+        "start_time": "2019-06-25T18:13:41.444944Z",
+        "end_time": "2019-06-25T18:13:41.444944Z",
+        "active": false
+      }
+    },
+    {
+      "type": "Microsoft.Web/sites/deployments",
+      "apiVersion": "2016-08-01",
+      "name": "[concat(parameters('sites_BCIDevOpsLabWeb_name'), '/31561487589299')]",
+      "location": "East US 2",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', parameters('sites_BCIDevOpsLabWeb_name'))]"
+      ],
+      "properties": {
+        "id": "31561487589299",
+        "status": 4,
+        "author": "Microsoft.VisualStudio.Services.TFS",
+        "deployer": "VSTS",
+        "message": "{\"type\":\"Deployment\",\"commitId\":\"d47d2fc3c4f2ddc7c29e01cc52a90c6c464c4eba\",\"buildId\":\"33\",\"releaseId\":\"3\",\"buildNumber\":\"20190625.2\",\"releaseName\":\"Release-3\",\"repoProvider\":\"Bitbucket\",\"collectionUrl\":\"https://dev.azure.com/csademos/\",\"teamProject\":\"905868c6-f02f-4cca-a8b2-b1c709a7fc58\",\"slotName\":\"production\"}",
+        "start_time": "2019-06-25T18:33:10.203376Z",
+        "end_time": "2019-06-25T18:33:10.203376Z",
+        "active": false
+      }
+    },
+    {
+      "type": "Microsoft.Web/sites/deployments",
+      "apiVersion": "2016-08-01",
+      "name": "[concat(parameters('sites_BCIDevOpsLabWeb_name'), '/41561488273138')]",
+      "location": "East US 2",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', parameters('sites_BCIDevOpsLabWeb_name'))]"
+      ],
+      "properties": {
+        "id": "41561488273138",
+        "status": 4,
+        "author": "Microsoft.VisualStudio.Services.TFS",
+        "deployer": "VSTS",
+        "message": "{\"type\":\"Deployment\",\"commitId\":\"55b7a80317139720b615c7117f580225a4c02789\",\"buildId\":\"34\",\"releaseId\":\"4\",\"buildNumber\":\"20190625.3\",\"releaseName\":\"Release-4\",\"repoProvider\":\"Bitbucket\",\"collectionUrl\":\"https://dev.azure.com/csademos/\",\"teamProject\":\"905868c6-f02f-4cca-a8b2-b1c709a7fc58\",\"slotName\":\"production\"}",
+        "start_time": "2019-06-25T18:44:34.070494Z",
+        "end_time": "2019-06-25T18:44:34.070494Z",
+        "active": false
+      }
+    },
+    {
+      "type": "Microsoft.Web/sites/deployments",
+      "apiVersion": "2016-08-01",
+      "name": "[concat(parameters('sites_BCIDevOpsLabWeb_name'), '/51561491761979')]",
+      "location": "East US 2",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', parameters('sites_BCIDevOpsLabWeb_name'))]"
+      ],
+      "properties": {
+        "id": "51561491761979",
+        "status": 4,
+        "author": "Diego Melgarejo San Martin",
+        "deployer": "VSTS",
+        "message": "{\"type\":\"Deployment\",\"commitId\":\"535fc20beb811e46a0c2c69c688c11cac81352db\",\"buildId\":\"36\",\"releaseId\":\"5\",\"buildNumber\":\"20190625.5\",\"releaseName\":\"Release-5\",\"repoProvider\":\"Bitbucket\",\"collectionUrl\":\"https://dev.azure.com/csademos/\",\"teamProject\":\"905868c6-f02f-4cca-a8b2-b1c709a7fc58\",\"slotName\":\"production\"}",
+        "start_time": "2019-06-25T19:42:42.979883Z",
+        "end_time": "2019-06-25T19:42:42.979883Z",
+        "active": false
+      }
+    },
+    {
+      "type": "Microsoft.Web/sites/deployments",
+      "apiVersion": "2016-08-01",
+      "name": "[concat(parameters('sites_BCIDevOpsLabWeb_name'), '/61561492504078')]",
+      "location": "East US 2",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', parameters('sites_BCIDevOpsLabWeb_name'))]"
+      ],
+      "properties": {
+        "id": "61561492504078",
+        "status": 4,
+        "author": "Diego Melgarejo San Martin",
+        "deployer": "VSTS",
+        "message": "{\"type\":\"Deployment\",\"commitId\":\"535fc20beb811e46a0c2c69c688c11cac81352db\",\"buildId\":\"36\",\"releaseId\":\"6\",\"buildNumber\":\"20190625.5\",\"releaseName\":\"Release-6\",\"repoProvider\":\"Bitbucket\",\"collectionUrl\":\"https://dev.azure.com/csademos/\",\"teamProject\":\"905868c6-f02f-4cca-a8b2-b1c709a7fc58\",\"slotName\":\"production\"}",
+        "start_time": "2019-06-25T19:55:04.890683Z",
+        "end_time": "2019-06-25T19:55:04.890683Z",
+        "active": false
+      }
+    },
+    {
+      "type": "Microsoft.Web/sites/deployments",
+      "apiVersion": "2016-08-01",
+      "name": "[concat(parameters('sites_BCIDevOpsLabWeb_name'), '/71561492746417')]",
+      "location": "East US 2",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', parameters('sites_BCIDevOpsLabWeb_name'))]"
+      ],
+      "properties": {
+        "id": "71561492746417",
+        "status": 4,
+        "author": "Diego Melgarejo San Martin",
+        "deployer": "VSTS",
+        "message": "{\"type\":\"Deployment\",\"commitId\":\"535fc20beb811e46a0c2c69c688c11cac81352db\",\"buildId\":\"36\",\"releaseId\":\"7\",\"buildNumber\":\"20190625.5\",\"releaseName\":\"Release-7\",\"repoProvider\":\"Bitbucket\",\"collectionUrl\":\"https://dev.azure.com/csademos/\",\"teamProject\":\"905868c6-f02f-4cca-a8b2-b1c709a7fc58\",\"slotName\":\"production\"}",
+        "start_time": "2019-06-25T19:59:07.285179Z",
+        "end_time": "2019-06-25T19:59:07.285179Z",
+        "active": false
+      }
+    },
+    {
+      "type": "Microsoft.Web/sites/deployments",
+      "apiVersion": "2016-08-01",
+      "name": "[concat(parameters('sites_BCIDevOpsLabWeb_name'), '/81561493295428')]",
+      "location": "East US 2",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', parameters('sites_BCIDevOpsLabWeb_name'))]"
+      ],
+      "properties": {
+        "id": "81561493295428",
+        "status": 4,
+        "author": "Diego Melgarejo San Martin",
+        "deployer": "VSTS",
+        "message": "{\"type\":\"Deployment\",\"commitId\":\"535fc20beb811e46a0c2c69c688c11cac81352db\",\"buildId\":\"36\",\"releaseId\":\"8\",\"buildNumber\":\"20190625.5\",\"releaseName\":\"Release-8\",\"repoProvider\":\"Bitbucket\",\"collectionUrl\":\"https://dev.azure.com/csademos/\",\"teamProject\":\"905868c6-f02f-4cca-a8b2-b1c709a7fc58\",\"slotName\":\"production\"}",
+        "start_time": "2019-06-25T20:08:16.228135Z",
+        "end_time": "2019-06-25T20:08:16.228135Z",
+        "active": false
+      }
+    },
+    {
+      "type": "Microsoft.Web/sites/deployments",
+      "apiVersion": "2016-08-01",
+      "name": "[concat(parameters('sites_BCIDevOpsLabWeb_name'), '/91561494232370')]",
+      "location": "East US 2",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', parameters('sites_BCIDevOpsLabWeb_name'))]"
+      ],
+      "properties": {
+        "id": "91561494232370",
+        "status": 4,
+        "author": "Diego Melgarejo San Martin",
+        "deployer": "VSTS",
+        "message": "{\"type\":\"Deployment\",\"commitId\":\"535fc20beb811e46a0c2c69c688c11cac81352db\",\"buildId\":\"36\",\"releaseId\":\"9\",\"buildNumber\":\"20190625.5\",\"releaseName\":\"Release-9\",\"repoProvider\":\"Bitbucket\",\"collectionUrl\":\"https://dev.azure.com/csademos/\",\"teamProject\":\"905868c6-f02f-4cca-a8b2-b1c709a7fc58\",\"slotName\":\"production\"}",
+        "start_time": "2019-06-25T20:23:53.129228Z",
+        "end_time": "2019-06-25T20:23:53.129228Z",
+        "active": true
+      }
+    },
+    {
+      "type": "Microsoft.Web/sites/hostNameBindings",
+      "apiVersion": "2016-08-01",
+      "name": "[concat(parameters('sites_BCIDevOpsLabWeb_name'), '/', parameters('sites_BCIDevOpsLabWeb_name'), '.azurewebsites.net')]",
+      "location": "East US 2",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', parameters('sites_BCIDevOpsLabWeb_name'))]"
+      ],
+      "properties": {
+        "siteName": "BCIDevOpsLabWeb",
+        "hostNameType": "Verified"
+      }
+    },
+    {
+      "type": "Microsoft.Sql/servers/databases/advisors",
+      "apiVersion": "2014-04-01",
+      "name": "[concat(parameters('servers_bcidevopslabsql_name'), '/BCIDevOpsLabDB/CreateIndex')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Sql/servers/databases', parameters('servers_bcidevopslabsql_name'), 'BCIDevOpsLabDB')]",
+        "[resourceId('Microsoft.Sql/servers', parameters('servers_bcidevopslabsql_name'))]"
+      ],
+      "properties": {
+        "autoExecuteValue": "Disabled"
+      }
+    },
+    {
+      "type": "Microsoft.Sql/servers/databases/advisors",
+      "apiVersion": "2014-04-01",
+      "name": "[concat(parameters('servers_bcidevopslabsql_name'), '/BCIDevOpsLabDB/DbParameterization')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Sql/servers/databases', parameters('servers_bcidevopslabsql_name'), 'BCIDevOpsLabDB')]",
+        "[resourceId('Microsoft.Sql/servers', parameters('servers_bcidevopslabsql_name'))]"
+      ],
+      "properties": {
+        "autoExecuteValue": "Disabled"
+      }
+    },
+    {
+      "type": "Microsoft.Sql/servers/databases/advisors",
+      "apiVersion": "2014-04-01",
+      "name": "[concat(parameters('servers_bcidevopslabsql_name'), '/BCIDevOpsLabDB/DefragmentIndex')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Sql/servers/databases', parameters('servers_bcidevopslabsql_name'), 'BCIDevOpsLabDB')]",
+        "[resourceId('Microsoft.Sql/servers', parameters('servers_bcidevopslabsql_name'))]"
+      ],
+      "properties": {
+        "autoExecuteValue": "Disabled"
+      }
+    },
+    {
+      "type": "Microsoft.Sql/servers/databases/advisors",
+      "apiVersion": "2014-04-01",
+      "name": "[concat(parameters('servers_bcidevopslabsql_name'), '/BCIDevOpsLabDB/DropIndex')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Sql/servers/databases', parameters('servers_bcidevopslabsql_name'), 'BCIDevOpsLabDB')]",
+        "[resourceId('Microsoft.Sql/servers', parameters('servers_bcidevopslabsql_name'))]"
+      ],
+      "properties": {
+        "autoExecuteValue": "Disabled"
+      }
+    },
+    {
+      "type": "Microsoft.Sql/servers/databases/advisors",
+      "apiVersion": "2014-04-01",
+      "name": "[concat(parameters('servers_bcidevopslabsql_name'), '/BCIDevOpsLabDB/ForceLastGoodPlan')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Sql/servers/databases', parameters('servers_bcidevopslabsql_name'), 'BCIDevOpsLabDB')]",
+        "[resourceId('Microsoft.Sql/servers', parameters('servers_bcidevopslabsql_name'))]"
+      ],
+      "properties": {
+        "autoExecuteValue": "Disabled"
+      }
+    },
+    {
+      "type": "Microsoft.Sql/servers/databases/auditingPolicies",
+      "apiVersion": "2014-04-01",
+      "name": "[concat(parameters('servers_bcidevopslabsql_name'), '/BCIDevOpsLabDB/Default')]",
+      "location": "East US 2",
+      "dependsOn": [
+        "[resourceId('Microsoft.Sql/servers/databases', parameters('servers_bcidevopslabsql_name'), 'BCIDevOpsLabDB')]",
+        "[resourceId('Microsoft.Sql/servers', parameters('servers_bcidevopslabsql_name'))]"
+      ],
+      "properties": {
+        "auditingState": "Disabled"
+      }
+    },
+    {
+      "type": "Microsoft.Sql/servers/databases/geoBackupPolicies",
+      "apiVersion": "2014-04-01",
+      "name": "[concat(parameters('servers_bcidevopslabsql_name'), '/BCIDevOpsLabDB/Default')]",
+      "location": "East US 2",
+      "dependsOn": [
+        "[resourceId('Microsoft.Sql/servers/databases', parameters('servers_bcidevopslabsql_name'), 'BCIDevOpsLabDB')]",
+        "[resourceId('Microsoft.Sql/servers', parameters('servers_bcidevopslabsql_name'))]"
+      ],
+      "properties": {
+        "state": "Enabled"
+      }
+    },
+    {
+      "type": "Microsoft.Sql/servers/databases/securityAlertPolicies",
+      "apiVersion": "2018-06-01-preview",
+      "name": "[concat(parameters('servers_bcidevopslabsql_name'), '/BCIDevOpsLabDB/Default')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Sql/servers/databases', parameters('servers_bcidevopslabsql_name'), 'BCIDevOpsLabDB')]",
+        "[resourceId('Microsoft.Sql/servers', parameters('servers_bcidevopslabsql_name'))]"
+      ],
+      "properties": {
+        "state": "Disabled",
+        "disabledAlerts": [
+          ""
+        ],
+        "emailAddresses": [
+          ""
+        ],
+        "emailAccountAdmins": false,
+        "retentionDays": 0
+      }
+    },
+    {
+      "type": "Microsoft.Sql/servers/databases/transparentDataEncryption",
+      "apiVersion": "2014-04-01",
+      "name": "[concat(parameters('servers_bcidevopslabsql_name'), '/BCIDevOpsLabDB/current')]",
+      "location": "East US 2",
+      "dependsOn": [
+        "[resourceId('Microsoft.Sql/servers/databases', parameters('servers_bcidevopslabsql_name'), 'BCIDevOpsLabDB')]",
+        "[resourceId('Microsoft.Sql/servers', parameters('servers_bcidevopslabsql_name'))]"
+      ],
+      "properties": {
+        "status": "Enabled"
+      }
+    },
+    {
+      "type": "Microsoft.Sql/servers/databases/vulnerabilityAssessments",
+      "apiVersion": "2017-03-01-preview",
+      "name": "[concat(parameters('servers_bcidevopslabsql_name'), '/BCIDevOpsLabDB/Default')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Sql/servers/databases', parameters('servers_bcidevopslabsql_name'), 'BCIDevOpsLabDB')]",
+        "[resourceId('Microsoft.Sql/servers', parameters('servers_bcidevopslabsql_name'))]"
+      ],
+      "properties": {
+        "recurringScans": {
+          "isEnabled": false,
+          "emailSubscriptionAdmins": true,
+          "emails": []
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Sql/servers/vulnerabilityAssessments",
+      "apiVersion": "2018-06-01-preview",
+      "name": "[concat(parameters('servers_bcidevopslabsql_name'), '/Default')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Sql/servers', parameters('servers_bcidevopslabsql_name'))]",
+        "[resourceId('Microsoft.Storage/StorageAccounts', parameters('storageAccounts_sqlvajf4hlg4ctwof2_name'))]"
+      ],
+      "properties": {
+        "storageContainerPath": "[concat('https://', parameters('storageAccounts_sqlvajf4hlg4ctwof2_name'), '.blob.core.windows.net/vulnerability-assessment/')]",
+        "recurringScans": {
+          "isEnabled": true,
+          "emailSubscriptionAdmins": true,
+          "emails": []
+        }
+      }
+    }
+  ]
+}
